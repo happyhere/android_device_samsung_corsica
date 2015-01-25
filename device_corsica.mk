@@ -1,8 +1,5 @@
 $(call inherit-product, $(SRC_TARGET_DIR)/product/languages_full.mk)
 
-# The gps config appropriate for this device
-$(call inherit-product, device/common/gps/gps_us_supl.mk)
-
 $(call inherit-product-if-exists, vendor/samsung/corsica/corsica-vendor.mk)
 
 DEVICE_PACKAGE_OVERLAYS += device/samsung/corsica/overlay
@@ -10,26 +7,33 @@ DEVICE_PACKAGE_OVERLAYS += device/samsung/corsica/overlay
 # LDPI assets
 PRODUCT_AAPT_CONFIG := normal ldpi mdpi nodpi
 PRODUCT_AAPT_PREF_CONFIG := ldpi
-#$(call inherit-product, device/ldpi-common/ldpi.mk)
 
 # Init files
 PRODUCT_COPY_FILES += \
 	device/samsung/corsica/init.rhea_ss_corsica.rc:root/init.rhea_ss_corsica.rc \
 	device/samsung/corsica/init.bcm2165x.usb.rc:root/init.bcm2165x.usb.rc \
 	device/samsung/corsica/init.log.rc:root/init.log.rc \
-	device/samsung/corsica/init.bt.rc:root/init.bt.rc \
-	device/samsung/corsica/lpm.rc:root/lpm.rc \
 	device/samsung/corsica/ueventd.rhea_ss_corsica.rc:root/ueventd.rhea_ss_corsica.rc \
-        device/samsung/corsica/init.recovery.rhea_ss_corsica.rc:root/init.recovery.rhea_ss_corsica.rc \
-	device/samsung/corsica/fstab.rhea_ss_corsica:root/fstab.rhea_ss_corsica 
+	device/samsung/corsica/init.recovery.rhea_ss_corsica.rc:root/init.recovery.rhea_ss_corsica.rc \
+	device/samsung/corsica/fstab.rhea_ss_corsica:root/fstab.rhea_ss_corsica \
+
+PRODUCT_COPY_FILES += \
+	frameworks/av/media/libstagefright/data/media_codecs_google_audio.xml:system/etc/media_codecs_google_audio.xml \
+	frameworks/av/media/libstagefright/data/media_codecs_google_telephony.xml:system/etc/media_codecs_google_telephony.xml \
+	frameworks/av/media/libstagefright/data/media_codecs_google_video.xml:system/etc/media_codecs_google_video.xml \
+	frameworks/av/media/libstagefright/data/media_codecs_ffmpeg.xml:system/etc/media_codecs_ffmpeg.xml \
+	device/samsung/corsica/media_codecs.xml:system/etc/media_codecs.xml \
+	device/samsung/corsica/audio_policy.conf:system/etc/audio_policy.conf \
 
 # Prebuilt kl keymaps
 PRODUCT_COPY_FILES += \
 	device/samsung/corsica/bcm_headset.kl:system/usr/keylayout/bcm_headset.kl \
 	device/samsung/corsica/bcm_keypad_v2.kl:system/usr/keylayout/bcm_keypad_v2.kl \
+	device/samsung/corsica/cyttsp4_btn.kl:system/usr/keylayout/cyttsp4_btn.kl \
 	device/samsung/corsica/gpio-keys.kl:system/usr/keylayout/gpio-keys.kl \
+	device/samsung/corsica/samsung-keypad.kl:system/usr/keylayout/samsung-keypad.kl \
+	device/samsung/corsica/sii9234_rcp.kl:system/usr/keylayout/sii9234_rcp.kl \
 	device/samsung/corsica/Generic.kl:system/usr/keylayout/Generic.kl \
-	device/samsung/corsica/samsung-keypad.kl:system/usr/keylayout/samsung-keypad.kl 
 
 # Filesystem management tools
 PRODUCT_PACKAGES += \
@@ -39,30 +43,40 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
 	com.android.future.usb.accessory
 
-# Misc other modules
+# Audio modules
 PRODUCT_PACKAGES += \
 	audio.a2dp.default \
-	audio.usb.default 
+	audio.usb.default \
+	audio.r_submix.default \
+
+USE_CUSTOM_AUDIO_POLICY := 1
+
 # Device-specific packages
 PRODUCT_PACKAGES += \
-	SamsungServiceMode 
-	
+	SamsungServiceMode \
 
 # Charger
 PRODUCT_PACKAGES += \
-	charger \
 	charger_res_images
+
+# Wi-Fi
+PRODUCT_PACKAGES += \
+	dhcpcd.conf \
+	hostapd \
+	wpa_supplicant \
+	wpa_supplicant.conf
 
 # These are the hardware-specific features
 PRODUCT_COPY_FILES += \
 	frameworks/native/data/etc/handheld_core_hardware.xml:system/etc/permissions/handheld_core_hardware.xml \
+	frameworks/native/data/etc/android.hardware.bluetooth_le.xml:system/etc/permissions/android.hardware.bluetooth_le.xml \
 	frameworks/native/data/etc/android.hardware.camera.front.xml:system/etc/permissions/android.hardware.camera.front.xml \
 	frameworks/native/data/etc/android.hardware.camera.flash-autofocus.xml:system/etc/permissions/android.hardware.camera.flash-autofocus.xml \
 	frameworks/native/data/etc/android.hardware.telephony.gsm.xml:system/etc/permissions/android.hardware.telephony.gsm.xml \
 	frameworks/native/data/etc/android.hardware.location.xml:system/etc/permissions/android.hardware.location.xml \
 	frameworks/native/data/etc/android.hardware.location.gps.xml:system/etc/permissions/android.hardware.location.gps.xml \
 	frameworks/native/data/etc/android.hardware.wifi.xml:system/etc/permissions/android.hardware.wifi.xml \
-        frameworks/native/data/etc/android.hardware.wifi.direct.xml:system/etc/permissions/android.hardware.wifi.direct.xml \
+	frameworks/native/data/etc/android.hardware.wifi.direct.xml:system/etc/permissions/android.hardware.wifi.direct.xml \
 	frameworks/native/data/etc/android.hardware.sensor.accelerometer.xml:system/etc/permissions/android.hardware.sensor.accelerometer.xml \
 	frameworks/native/data/etc/android.hardware.sensor.compass.xml:system/etc/permissions/android.hardware.sensor.compass.xml \
 	frameworks/native/data/etc/android.hardware.sensor.gyroscope.xml:system/etc/permissions/android.hardware.sensor.gyroscope.xml \
@@ -87,8 +101,10 @@ PRODUCT_PROPERTY_OVERRIDES += \
     mobiledata.interfaces=rmnet0 \
     ro.telephony.ril_class=SamsungBCMRIL \
     ro.zygote.disable_gl_preload=true \
+    ro.cm.hardware.cabc=/sys/class/mdnie/mdnie/cabc \
+    persist.radio.multisim.config=dsds \
     ro.telephony.call_ring.multiple=0 \
-    ro.telephony.call_ring=0 
+    ro.telephony.call_ring=0 \
 
 # enable Google-specific location features,
 # like NetworkLocationProvider and LocationCollector
@@ -111,6 +127,12 @@ PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
 # Boot animation
 TARGET_SCREEN_HEIGHT := 320
 TARGET_SCREEN_WIDTH := 240
+
+# Override phone-hdpi-512-dalvik-heap to match value on stock
+# - helps pass CTS com.squareup.okhttp.internal.spdy.Spdy3Test#tooLargeDataFrame)
+# (property override must come before included property)
+PRODUCT_PROPERTY_OVERRIDES += \
+    dalvik.vm.heapgrowthlimit=56m \
 
 # Dalvik heap config
 include frameworks/native/build/phone-hdpi-512-dalvik-heap.mk

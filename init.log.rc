@@ -87,23 +87,23 @@ on property:persist.brcm.ap_crash=sdcard
 
 #Setup Broadcom brcm.ase.xxx handling for ASE
 on property:brcm.ase.log=*
-    write /sys/class/bcm_log/bcm_log/log $brcm.ase.log
+    write /sys/class/bcm_log/bcm_log/log ${brcm.ase.log}
 
 on property:brcm.ase.cp_crash=*
-    write /sys/class/bcm_log/bcm_log/cp_crash $brcm.ase.cp_crash
+    write /sys/class/bcm_log/bcm_log/cp_crash ${brcm.ase.cp_crash}
 
 on property:brcm.ase.ap_crash=*
-    write /sys/class/bcm_log/bcm_log/ap_crash $brcm.ase.ap_crash
+    write /sys/class/bcm_log/bcm_log/ap_crash ${brcm.ase.ap_crash}
     
 on property:brcm.ase.log_save=1
-    setprop persist.brcm.log $brcm.ase.log
+    setprop persist.brcm.log ${brcm.ase.log}
 
 on property:brcm.ase.file_max=*
-    write /sys/class/bcm_log/bcm_log/file_max $brcm.ase.file_max
+    write /sys/class/bcm_log/bcm_log/file_max ${brcm.ase.file_max}
 
 on property:brcm.ase.file_max_save=1
-    setprop persist.brcm.log_file_max $brcm.ase.file_max
+    setprop persist.brcm.log_file_max ${brcm.ase.file_max}
 
 on property:persist.brcm.log_file_max=*
-    write /sys/class/bcm_log/bcm_log/file_max $persist.brcm.log_file_max
+    write /sys/class/bcm_log/bcm_log/file_max ${persist.brcm.log_file_max}
 

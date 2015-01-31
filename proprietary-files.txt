@@ -2,7 +2,6 @@ bin/atrace
 bin/BCM4330B1_002.001.003.0967.1089.hcd
 bin/bkmgrd
 bin/bluetoothd
-bin/btld
 bin/cate_rpc_util
 bin/glgps
 bin/gps.cer

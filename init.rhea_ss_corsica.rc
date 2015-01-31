@@ -1,6 +1,5 @@
 import init.bcm2165x.usb.rc
-import init.bt.rc
-import init.log.rc
+etprop ro.bt.bdaddr_path "/efs/bluetooth/bt_addr"import init.log.rc
 
 on early-init
     loglevel 9
@@ -113,12 +112,12 @@ on boot
 
 # Permissions for bluetooth
     setprop ro.bt.bdaddr_path "/efs/bluetooth/bt_addr"
-    chown bluetooth bluetooth ro.bt.bdaddr_path
-#    chown bluetooth bluetooth /dev/ttySAC0
-#    chmod 0600 /dev/ttySAC0
+    chown bluetooth net_bt_stack ro.bt.bdaddr_path
+    chown bluetooth net_bt_stack /dev/ttyS0
+    chmod 0600 /dev/ttyS0
     chmod 0660 /sys/class/rfkill/rfkill0/state
-    chown bluetooth bluetooth /sys/class/rfkill/rfkill0/state
-    chown bluetooth bluetooth /sys/class/rfkill/rfkill0/type
+    chown bluetooth net_bt_stack /sys/class/rfkill/rfkill0/state
+    chown bluetooth net_bt_stack /sys/class/rfkill/rfkill0/type
 
     # Permission for /proc/cmdline
     chmod 0644 /proc/cmdline
@@ -222,10 +221,6 @@ on boot
     write /sys/class/gpio/gpio97/direction out
     write /sys/class/gpio/gpio97/value 0
     
-#for bluetooth. permission for host interface
-    chown root bluetooth /dev/ttyS0
-    chmod 0777 /dev/ttyS0
-
 # Permission for pm debug - force sleep
     chown system system /sys/module/rhea_pm_dbg/parameters/debug
 

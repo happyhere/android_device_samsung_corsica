@@ -13,13 +13,12 @@ TARGET_CPU_ABI := armeabi-v7a
 TARGET_CPU_ABI2 := armeabi
 TARGET_ARCH_VARIANT := armv7-a-neon
 TARGET_CPU_VARIANT := cortex-a9
-TARGET_CPU_SMP := true
 
 TARGET_ARCH_LOWMEM := true
 
 TARGET_BOOTLOADER_BOARD_NAME := rhea
 
-BOARD_KERNEL_CMDLINE := console=ttyS0,115200n8 mem=456M androidboot.console=ttyS0 gpt v3d_mem=67108864 pmem=24M@0x9E800000
+BOARD_KERNEL_CMDLINE := androidboot.selinux=permissive androidboot.console=ttyS0
 BOARD_KERNEL_BASE := 0x82000000
 BOARD_KERNEL_PAGESIZE := 4096
 
@@ -33,7 +32,7 @@ BOARD_RECOVERYIMAGE_PARTITION_SIZE := 0x00800000
 BOARD_SYSTEMIMAGE_PARTITION_SIZE := 1002438656
 
 BOARD_USERDATAIMAGE_PARTITION_SIZE := 2173120512
-BOARD_CACHEIMAGE_PARTITION_SIZE := 1073741824
+BOARD_CACHEIMAGE_PARTITION_SIZE := 573741824
 BOARD_CACHEIMAGE_FILE_SYSTEM_TYPE := ext4
 BOARD_FLASH_BLOCK_SIZE := 131072
 
@@ -73,9 +72,6 @@ WIFI_BAND                   := 802_11_ABG
 # Wi-Fi Tethering
 BOARD_HAVE_SAMSUNG_WIFI := true
 
-# SkTextBox for libtvout
-BOARD_USES_SKTEXTBOX := true
-
 # Hardware rendering
 USE_OPENGL_RENDERER := true
 BOARD_EGL_CFG := device/samsung/corsica/egl.cfg
@@ -84,7 +80,7 @@ BOARD_EGL_WORKAROUND_BUG_10194508 := true
 TARGET_RUNNING_WITHOUT_SYNC_FRAMEWORK := true
 COMMON_GLOBAL_CFLAGS += -DNEEDS_VECTORIMPL_SYMBOLS -DRHEA_HWC -DADD_LEGACY_ACQUIRE_BUFFER_SYMBOL -DREFBASE_JB_MR1_COMPAT_SYMBOLS
 COMMON_GLOBAL_CFLAGS += -DEGL_NEEDS_FNW
-COMMON_GLOBAL_CFLAGS += -DMR0_AUDIO_BLOB
+COMMON_GLOBAL_CFLAGS += -DMR0_AUDIO_BLOB -DSAMSUNG_BCM_AUDIO_BLOB -DMR0_CAMERA_BLOB
 
 # Bootanimation
 TARGET_BOOTANIMATION_PRELOAD := true
@@ -128,9 +124,20 @@ BOARD_SEPOLICY_DIRS += \
 
 BOARD_SEPOLICY_UNION += \
     file_contexts \
-    surfaceflinger.te \
-    init.te \
-    shell.te \
-    netd.te \
+    property_contexts \
+    service_contexts \
+    bkmgrd.te \
     device.te \
+    geomagneticd.te \
+    gpsd.te \
+    init.te \
+    immvibed.te \
+    kernel.te \
+    macloader.te \
     rild.te \
+    shell.te \
+    system_server.te \
+    tvserver.te \
+    vclmk.te \
+    netd.te \
+    surfaceflinger.te \

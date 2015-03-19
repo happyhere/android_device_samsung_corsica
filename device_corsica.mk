@@ -98,7 +98,7 @@ PRODUCT_PACKAGES += \
 # be reachable from resources or other mechanisms.
 PRODUCT_PROPERTY_OVERRIDES += \
     wifi.interface=wlan0 \
-    mobiledata.interfaces=rmnet0 \
+    mobiledata.interfaces=wlan0,gprs,rmnet0,rmnet1 \
     ro.telephony.ril_class=SamsungBCMRIL \
     ro.zygote.disable_gl_preload=true \
     ro.cm.hardware.cabc=/sys/class/mdnie/mdnie/cabc \

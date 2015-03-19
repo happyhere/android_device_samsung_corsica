@@ -1,5 +1,5 @@
 import init.bcm2165x.usb.rc
-etprop ro.bt.bdaddr_path "/efs/bluetooth/bt_addr"import init.log.rc
+import init.log.rc
 
 on early-init
     loglevel 9
@@ -52,6 +52,7 @@ on post-fs-data
     mkdir /data/misc/wifi 0775 wifi system
     mkdir /data/misc/wifi/sockets 0770 wifi wifi
     mkdir /data/misc/dhcp 0775 dhcp dhcp
+    mkdir /system/etc/wifi 0775 wifi wifi
     chown system system /efs/wifi/.mac.info
     chmod 0664 /efs/wifi/.mac.info
     chown system system /efs/imei/.nvmac.info
@@ -83,9 +84,6 @@ on post-fs-data
     chown system system /sys/class/backlight/panel/brightness
     chmod 0660 /sys/class/backlight/panel/brightness
 
-    chown system system /sys/class/backlight/keypad-led/brightness
-    chmod 0660 /sys/class/backlight/keypad-led/brightness
-
    chown system system /sys/class/backlight/touchkey-led/brightness
    chmod 0660 /sys/class/backlight/touchkey-led/brightness
 
@@ -112,12 +110,12 @@ on boot
 
 # Permissions for bluetooth
     setprop ro.bt.bdaddr_path "/efs/bluetooth/bt_addr"
-    chown bluetooth net_bt_stack ro.bt.bdaddr_path
-    chown bluetooth net_bt_stack /dev/ttyS0
-    chmod 0600 /dev/ttyS0
+    chown bluetooth bluetooth ro.bt.bdaddr_path
+#    chown bluetooth bluetooth /dev/ttySAC0
+#    chmod 0600 /dev/ttySAC0
     chmod 0660 /sys/class/rfkill/rfkill0/state
-    chown bluetooth net_bt_stack /sys/class/rfkill/rfkill0/state
-    chown bluetooth net_bt_stack /sys/class/rfkill/rfkill0/type
+    chown bluetooth bluetooth /sys/class/rfkill/rfkill0/state
+    chown bluetooth bluetooth /sys/class/rfkill/rfkill0/type
 
     # Permission for /proc/cmdline
     chmod 0644 /proc/cmdline
@@ -165,6 +163,7 @@ on boot
     chown system system /proc/bcm_fuse_net_config
     chown system system /dev/block/mmcblk0
     chmod 0660 /dev/block/mmcblk0
+    chown system system /dev/mem
 
 #security driver
     chmod 0660 /dev/bcm_security
@@ -221,6 +220,10 @@ on boot
     write /sys/class/gpio/gpio97/direction out
     write /sys/class/gpio/gpio97/value 0
     
+#for bluetooth. permission for host interface
+    chown root bluetooth /dev/ttyS0
+    chmod 0777 /dev/ttyS0
+
 # Permission for pm debug - force sleep
     chown system system /sys/module/rhea_pm_dbg/parameters/debug
 
@@ -277,19 +280,10 @@ on boot
 #voice Soulution
     copy /system/etc/DiamondVoice.txt /data/DiamondVoice.txt
     chmod 0777 /data/DiamondVoice.txt	
+    copy /system/etc/DiamondVoice_Filter.txt /data/DiamondVoice_Filter.txt
+    chmod 0777 /data/DiamondVoice_Filter.txt
 	insmod /system/lib/modules/VoiceSolution.ko
 
-on charger
-    # set cpu governor to powersave while in charging mode
-    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor powersave
-    # EHCI runtime enable for LPA
-    write /sys/devices/platform/s5p-ehci/power/control auto
-
-    chmod 0660 /proc/vc
-    chmod 0660 /proc/vc/display
-    chmod 0660 /proc/vc/display/vchiq_control
-    write /proc/vc/display/vchiq_control "earlysuspctrl "
-    write /proc/vc/display/vchiq_control "autosuspend "
 
 on fs
     mount_all /fstab.rhea_ss_corsica
@@ -342,11 +336,8 @@ on fs
     chmod 0660 /sys/class/sec/sec_touchkey/touchkey_menu
     chown system system /sys/class/sec/sec_touchkey/touchkey_threshold
     chmod 0660 /sys/class/sec/sec_touchkey/touchkey_threshold
-    
-    chown system radio /sys/class/sec/switch/adc
 
 on post-fs
-    restorecon_recursive /efs
     chown radio system /efs
     chmod 0771 /efs
 
@@ -359,6 +350,13 @@ service setup_fs /system/bin/setup_fs \
     group root
     oneshot
 
+#at_distributor for making concerned about factory.
+service at_distributor /system/bin/at_distributor
+	class main
+	user root
+	group root
+	oneshot
+
 # RILD
 service rhea-ril-daemon /system/bin/rild
     class main
@@ -368,19 +366,13 @@ service rhea-ril-daemon /system/bin/rild
     user root
     group radio cache inet misc audio system sdcard_rw log sdcard_r
 
-service charger /sbin/healthd -c
-    class charger
-    critical
-    seclabel u:r:healthd:s0
-
 # create virtual SD card at /storage/sdcard, based on the /data/media directory
 # daemon will drop to user/group system/media_rw after initializing
 # underlying files in /data/media will be created with user and group media_rw (1023)
 service sdcard /system/bin/sdcard -u 1023 -g 1023 -l /data/media /mnt/shell/emulated
     class late_start
-    oneshot
 
-service wpa_supplicant /system/bin/wpa_supplicant \
+service wpa_supplicant /system/bin/logwrapper /system/bin/wpa_supplicant \
     -iwlan0 -Dnl80211 -c/data/misc/wifi/wpa_supplicant.conf \
     -I/system/etc/wifi/wpa_supplicant_overlay.conf \
     -e/data/misc/wifi/entropy.bin \
@@ -394,7 +386,7 @@ service wpa_supplicant /system/bin/wpa_supplicant \
     disabled
     oneshot
 
-service p2p_supplicant /system/bin/wpa_supplicant \
+service p2p_supplicant /system/bin/logwrapper /system/bin/wpa_supplicant \
     -iwlan0 -Dnl80211 -c/data/misc/wifi/wpa_supplicant.conf \
     -I/system/etc/wifi/wpa_supplicant_overlay.conf -N \
     -ip2p0 -Dnl80211 -c/data/misc/wifi/p2p_supplicant.conf \
@@ -459,6 +451,14 @@ service gpsd /system/bin/glgps -c /system/etc/gps/glconfig.xml
     user gps
     group system sdcard_rw inet root radio wifi
 
+# Run ATX over UART
+service console /system/bin/atx -l -d
+    class main
+    console
+    oneshot
+    user system
+    group vpn net_admin net_raw radio system sdcard_rw log mount
+
 # Run bkmgrd automatically on startup
 service bkmgrd /system/bin/bkmgrd
     class main
@@ -475,5 +475,5 @@ on property:dev.bootcomplete=1
 # fusewrapped external sdcard daemon running as media_rw (1023)
 service fuse_sdcard1 /system/bin/sdcard -u 1023 -g 1023 -d /mnt/media_rw/sdcard1 /storage/sdcard1
     class late_start
-    oneshot
     disabled
+
